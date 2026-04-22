@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CodeScope — AI Repo Analyzer</title>
+<title>CodeScope — AI Code Reviewer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -26,59 +26,79 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 ::-webkit-scrollbar-track{background:var(--bg2)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-/* Header */
+/* ── Header ── */
 header{display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:54px;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:100}
 .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.05rem;letter-spacing:-.02em;color:var(--text);text-decoration:none}
 .logo-icon{width:28px;height:28px;background:var(--green);border-radius:6px;display:grid;place-items:center;flex-shrink:0}
 .logo-icon svg{width:15px;height:15px;stroke:var(--bg);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.header-right{display:flex;align-items:center;gap:12px}
 .hbadge{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:20px;border:1px solid var(--green2);color:var(--green);background:var(--green-bg)}
 
-/* Hero */
-.hero{padding:3.5rem 2rem 2.5rem;text-align:center;position:relative;overflow:hidden}
+/* ── Hero ── */
+.hero{padding:3rem 2rem 0;text-align:center;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:700px;height:350px;background:radial-gradient(ellipse,rgba(63,185,80,.07) 0%,transparent 65%);pointer-events:none}
-.eyebrow{font-family:var(--mono);font-size:11px;color:var(--green);letter-spacing:.15em;text-transform:uppercase;margin-bottom:.9rem}
-.hero h1{font-size:clamp(1.9rem,4.5vw,3.2rem);font-weight:800;letter-spacing:-.04em;line-height:1.1;margin-bottom:.9rem}
+.eyebrow{font-family:var(--mono);font-size:11px;color:var(--green);letter-spacing:.15em;text-transform:uppercase;margin-bottom:.8rem}
+.hero h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:800;letter-spacing:-.04em;line-height:1.1;margin-bottom:.8rem}
 .hero h1 em{color:var(--green);font-style:normal}
-.hero p{font-size:.95rem;color:var(--text2);max-width:500px;margin:0 auto 2.2rem;line-height:1.75}
+.hero p{font-size:.9rem;color:var(--text2);max-width:480px;margin:0 auto 0;line-height:1.75}
 
-/* Search */
-.search-wrap{max-width:660px;margin:0 auto}
-.search-box{display:flex;align-items:center;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+/* ── Tabs ── */
+.tabs-wrap{max-width:720px;margin:2rem auto 0;padding:0 2rem}
+.tab-bar{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:10px 10px 0 0;overflow:hidden}
+.tab-btn{flex:1;padding:11px 0;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text3);background:none;border:none;cursor:pointer;transition:all .15s;letter-spacing:.01em;border-bottom:2px solid transparent}
+.tab-btn:hover{color:var(--text2);background:var(--bg4)}
+.tab-btn.on{color:var(--green);background:var(--bg2);border-bottom-color:var(--green)}
+.tab-panels{background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:1.2rem}
+
+/* Repo tab */
+.search-box{display:flex;align-items:center;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
 .search-box:focus-within{border-color:var(--green);box-shadow:0 0 0 3px rgba(63,185,80,.1)}
-.prefix{font-family:var(--mono);font-size:12px;color:var(--text3);padding:0 0 0 16px;white-space:nowrap;flex-shrink:0}
-.search-input{flex:1;background:none;border:none;outline:none;padding:14px 10px;font-family:var(--mono);font-size:13px;color:var(--text);min-width:0}
+.prefix{font-family:var(--mono);font-size:12px;color:var(--text3);padding:0 0 0 14px;white-space:nowrap;flex-shrink:0}
+.search-input{flex:1;background:none;border:none;outline:none;padding:12px 10px;font-family:var(--mono);font-size:13px;color:var(--text);min-width:0}
 .search-input::placeholder{color:var(--text3)}
-.search-btn{background:var(--green);color:var(--bg);border:none;padding:0 20px;height:48px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;white-space:nowrap;letter-spacing:.02em;flex-shrink:0}
+.search-btn{background:var(--green);color:var(--bg);border:none;padding:0 18px;height:44px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;transition:background .15s;white-space:nowrap;letter-spacing:.02em;flex-shrink:0}
 .search-btn:hover{background:#57d668}
 .search-btn:disabled{opacity:.5;cursor:not-allowed}
-
-.examples{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:.9rem}
-.chip{font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);color:var(--text3);background:var(--bg2);cursor:pointer;transition:all .15s}
+.examples{display:flex;gap:6px;flex-wrap:wrap;margin-top:.8rem}
+.chip{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);color:var(--text3);background:var(--bg3);cursor:pointer;transition:all .15s}
 .chip:hover{border-color:var(--green);color:var(--green);background:var(--green-bg)}
 
-/* Feature strip */
-.fstrip{display:flex;justify-content:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg2);overflow-x:auto;padding:0 1rem}
-.feat{display:flex;align-items:center;gap:7px;padding:11px 18px;font-size:11px;color:var(--text2);white-space:nowrap;border-right:1px solid var(--border);flex-shrink:0}
+/* Paste tab */
+.paste-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+@media(max-width:600px){.paste-grid{grid-template-columns:1fr}}
+.paste-label{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.paste-select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;cursor:pointer}
+.paste-select:focus{border-color:var(--green)}
+.filename-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none}
+.filename-input::placeholder{color:var(--text3)}
+.filename-input:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(63,185,80,.1)}
+.code-textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:12px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;resize:vertical;min-height:180px;line-height:1.7;transition:border-color .2s}
+.code-textarea::placeholder{color:var(--text3)}
+.code-textarea:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(63,185,80,.1)}
+.paste-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;flex-wrap:wrap}
+.char-count{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.review-btn{background:var(--green);color:var(--bg);border:none;padding:9px 20px;border-radius:7px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;letter-spacing:.02em}
+.review-btn:hover{background:#57d668}
+.review-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── Feature strip ── */
+.fstrip{display:flex;justify-content:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg2);overflow-x:auto;padding:0 1rem;margin-top:2rem}
+.feat{display:flex;align-items:center;gap:7px;padding:10px 16px;font-size:11px;color:var(--text2);white-space:nowrap;border-right:1px solid var(--border);flex-shrink:0}
 .feat:last-child{border-right:none}
 .fdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 
-/* Main */
+/* ── Main ── */
 main{padding:1.75rem 2rem;max-width:1380px;margin:0 auto}
 
-/* Repo card */
-.repo-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.1rem 1.4rem;margin-bottom:1.4rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;animation:fadeUp .3s ease}
+/* ── Repo card ── */
+.repo-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem 1.4rem;margin-bottom:1.4rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;animation:fadeUp .3s ease}
 .repo-name{font-weight:700;font-size:.95rem}
 .repo-desc{font-size:11px;color:var(--text2);max-width:480px;margin-top:3px}
 .stats{display:flex;gap:10px;flex-wrap:wrap}
 .stat{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;color:var(--text3);padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);text-decoration:none}
-.stat svg{width:11px;height:11px;fill:currentColor;flex-shrink:0}
 
-/* Workspace */
+/* ── Workspace ── */
 .workspace{display:grid;grid-template-columns:270px 1fr;gap:1.4rem;align-items:start}
 @media(max-width:860px){.workspace{grid-template-columns:1fr}}
-
-/* Panel */
 .panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;animation:fadeUp .35s ease}
 .ph{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-bottom:1px solid var(--border);background:var(--bg3)}
 .pt{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2)}
@@ -86,7 +106,7 @@ main{padding:1.75rem 2rem;max-width:1380px;margin:0 auto}
 .pact:hover{background:var(--green2);color:#fff}
 .pact:disabled{opacity:.4;cursor:not-allowed}
 
-/* File list */
+/* ── File list ── */
 .file-list{max-height:500px;overflow-y:auto}
 .fi{display:flex;align-items:center;gap:7px;padding:6px 13px;cursor:pointer;border-bottom:1px solid rgba(48,54,61,.4);transition:background .1s;font-family:var(--mono);font-size:11px;color:var(--text2)}
 .fi:hover{background:var(--bg3);color:var(--text)}
@@ -99,22 +119,21 @@ main{padding:1.75rem 2rem;max-width:1380px;margin:0 auto}
 .chk{width:13px;height:13px;border-radius:3px;border:1px solid var(--border2);flex-shrink:0;display:grid;place-items:center;transition:all .15s}
 .fi.sel .chk{background:var(--green);border-color:var(--green)}
 
-/* Summary grid */
+/* ── Summary ── */
 .sum-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;animation:fadeUp .4s ease}
 .sc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:13px}
 .slabel{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:4px}
-.sval{font-size:1.55rem;font-weight:800;font-family:var(--mono);line-height:1}
+.sval{font-size:1.5rem;font-weight:800;font-family:var(--mono);line-height:1}
 .ssub{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:3px}
 
-/* Filter bar */
+/* ── Filters ── */
 .fbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:11px}
 .fb{font-family:var(--mono);font-size:11px;padding:4px 11px;border-radius:20px;border:1px solid var(--border);color:var(--text3);background:var(--bg2);cursor:pointer;transition:all .15s}
 .fb:hover{border-color:var(--border2);color:var(--text2)}
 .fb.on{border-color:var(--green);color:var(--green);background:var(--green-bg)}
 
-/* Issue card */
-.icard{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:9px;animation:fadeUp .2s ease;transition:border-color .15s}
-.icard:hover{border-color:var(--border2)}
+/* ── Issue card ── */
+.icard{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:9px;animation:fadeUp .2s ease}
 .icard.high{border-left:3px solid var(--red)}
 .icard.medium{border-left:3px solid var(--amber)}
 .icard.low{border-left:3px solid var(--blue)}
@@ -134,7 +153,7 @@ main{padding:1.75rem 2rem;max-width:1380px;margin:0 auto}
 .fixlabel{font-family:var(--mono);font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
 .cblock{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:11px;font-family:var(--mono);font-size:11px;color:var(--text);overflow-x:auto;white-space:pre;line-height:1.6}
 
-/* Progress */
+/* ── Progress ── */
 .prog-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;animation:fadeUp .3s ease}
 .prog-title{font-size:13px;font-weight:600;margin-bottom:5px}
 .prog-sub{font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:13px}
@@ -142,28 +161,27 @@ main{padding:1.75rem 2rem;max-width:1380px;margin:0 auto}
 .prog-bar{height:100%;background:linear-gradient(90deg,var(--green2),var(--green));border-radius:6px;transition:width .4s ease;width:0}
 .prog-log{font-family:var(--mono);font-size:10px;color:var(--text3);max-height:90px;overflow-y:auto;line-height:1.9}
 
-/* Export */
+/* ── Export ── */
 .expbtn{font-family:var(--sans);font-size:12px;font-weight:600;padding:7px 14px;border-radius:7px;border:1px solid var(--border2);color:var(--text2);background:var(--bg3);cursor:pointer;transition:all .15s;margin-left:auto}
 .expbtn:hover{border-color:var(--green);color:var(--green);background:var(--green-bg)}
 
-/* Empty */
+/* ── Empty/Toast/Legend ── */
 .empty{text-align:center;padding:3rem 1rem;color:var(--text3)}
-.empty-icon{font-size:2.2rem;margin-bottom:.8rem;opacity:.5}
+.empty-icon{font-size:2rem;margin-bottom:.7rem;opacity:.5}
 .empty h3{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:5px}
 .empty p{font-size:11px;line-height:1.65;max-width:250px;margin:0 auto}
-
-/* Toast */
 .toast{position:fixed;bottom:1.4rem;right:1.4rem;background:var(--red-bg);border:1px solid var(--red);border-radius:8px;padding:11px 15px;font-size:11px;color:var(--red);max-width:340px;z-index:1000;animation:fadeUp .2s ease;font-family:var(--mono)}
-
-/* Legend */
 .legend{display:flex;flex-direction:column;gap:5px;padding:10px 4px}
 .litem{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text3);font-family:var(--mono)}
 .ldot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
-
-/* Results area */
 .results-area{display:flex;flex-direction:column;gap:1.25rem}
 
-/* Animations */
+/* ── Paste result panel ── */
+.paste-result{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.4rem;animation:fadeUp .3s ease}
+.pr-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
+.pr-title{font-size:13px;font-weight:700}
+.score-badge{font-family:var(--mono);font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid}
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
 </style>
@@ -177,33 +195,76 @@ main{padding:1.75rem 2rem;max-width:1380px;margin:0 auto}
     </div>
     CodeScope
   </a>
-  <div class="header-right">
-    <span class="hbadge">Llama 3.3 · Groq · Free</span>
-  </div>
+  <span class="hbadge">Llama 3.3 · Groq · Free</span>
 </header>
 
 <!-- Hero -->
 <section class="hero">
   <p class="eyebrow">// AI-Powered Code Review</p>
   <h1>Find bugs in any<br><em>open source repo</em></h1>
-  <p>Paste any public GitHub URL. AI scans every file, flags bugs, security holes, bad practices — and writes the fixes.</p>
-
-  <div class="search-wrap">
-    <div class="search-box">
-      <span class="prefix">github.com/</span>
-      <input id="repo-input" class="search-input" type="text"
-             placeholder="owner/repo  or paste full URL"
-             autocomplete="off" spellcheck="false">
-      <button class="search-btn" id="load-btn" onclick="loadRepo()">Scan Repo →</button>
-    </div>
-    <div class="examples">
-      <span class="chip" onclick="setEx('tiangolo/fastapi')">tiangolo/fastapi</span>
-      <span class="chip" onclick="setEx('pallets/flask')">pallets/flask</span>
-      <span class="chip" onclick="setEx('psf/requests')">psf/requests</span>
-      <span class="chip" onclick="setEx('expressjs/express')">expressjs/express</span>
-    </div>
-  </div>
+  <p>Scan a GitHub repo or paste your own code. AI flags bugs, security holes, bad practices — and writes the fixes.</p>
 </section>
+
+<!-- Tabs -->
+<div class="tabs-wrap">
+  <div class="tab-bar">
+    <button class="tab-btn on" id="tab-repo" onclick="switchTab('repo')">🔍 Scan GitHub Repo</button>
+    <button class="tab-btn"    id="tab-paste" onclick="switchTab('paste')">📋 Paste Code</button>
+  </div>
+
+  <div class="tab-panels">
+
+    <!-- Repo tab -->
+    <div id="panel-repo">
+      <div class="search-box">
+        <span class="prefix">github.com/</span>
+        <input id="repo-input" class="search-input" type="text"
+               placeholder="owner/repo  or paste full URL"
+               autocomplete="off" spellcheck="false">
+        <button class="search-btn" id="load-btn" onclick="loadRepo()">Scan Repo →</button>
+      </div>
+      <div class="examples">
+        <span class="chip" onclick="setEx('tiangolo/fastapi')">tiangolo/fastapi</span>
+        <span class="chip" onclick="setEx('pallets/flask')">pallets/flask</span>
+        <span class="chip" onclick="setEx('psf/requests')">psf/requests</span>
+        <span class="chip" onclick="setEx('expressjs/express')">expressjs/express</span>
+      </div>
+    </div>
+
+    <!-- Paste tab -->
+    <div id="panel-paste" style="display:none">
+      <div class="paste-grid">
+        <div>
+          <div class="paste-label">Language</div>
+          <select id="paste-lang" class="paste-select">
+            <option value="python">Python</option>
+            <option value="javascript">JavaScript</option>
+            <option value="typescript">TypeScript</option>
+            <option value="java">Java</option>
+            <option value="go">Go</option>
+            <option value="cpp">C++</option>
+            <option value="c">C</option>
+            <option value="csharp">C#</option>
+            <option value="rust">Rust</option>
+            <option value="php">PHP</option>
+            <option value="ruby">Ruby</option>
+          </select>
+        </div>
+        <div>
+          <div class="paste-label">Filename (optional)</div>
+          <input id="paste-filename" class="filename-input" type="text" placeholder="e.g. utils.py" spellcheck="false">
+        </div>
+      </div>
+      <textarea id="paste-code" class="code-textarea"
+                placeholder="Paste your code here...&#10;&#10;Try something with a bug — e.g. a function with no error handling,&#10;a SQL query using f-strings, or a mutable default argument."></textarea>
+      <div class="paste-row">
+        <span class="char-count" id="char-count">0 chars</span>
+        <button class="review-btn" id="paste-btn" onclick="reviewPaste()">Review Code →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <!-- Feature strip -->
 <div class="fstrip">
@@ -216,16 +277,17 @@ main{padding:1.75rem 2rem;max-width:1380px;margin:0 auto}
 </div>
 
 <main>
-  <!-- Repo card -->
+
+  <!-- Repo info card -->
   <div id="repo-card" class="repo-card" style="display:none">
     <div>
       <div class="repo-name" id="repo-fullname"></div>
-      <div class="repo-desc" id="repo-desc"></div>
+      <div class="repo-desc"  id="repo-desc"></div>
     </div>
     <div class="stats" id="repo-stats"></div>
   </div>
 
-  <!-- Workspace -->
+  <!-- Repo workspace -->
   <div class="workspace" id="workspace" style="display:none">
 
     <!-- Left: file browser -->
@@ -246,7 +308,7 @@ main{padding:1.75rem 2rem;max-width:1380px;margin:0 auto}
       </div>
     </div>
 
-    <!-- Right: results -->
+    <!-- Right: repo results -->
     <div class="results-area" id="results-area">
       <div class="panel" id="results-empty">
         <div class="empty" style="padding:4rem 1rem">
@@ -257,12 +319,35 @@ main{padding:1.75rem 2rem;max-width:1380px;margin:0 auto}
       </div>
     </div>
   </div>
+
+  <!-- Paste results -->
+  <div id="paste-results" style="display:none"></div>
+
 </main>
 
 <script>
 const API = 'http://localhost:8000';
+let repoInfo=null, allFiles=[], selected=new Set(), results={};
 
-let repoInfo = null, allFiles = [], selected = new Set(), results = {};
+// ── Tab switching ──────────────────────────────────────────
+function switchTab(t){
+  document.getElementById('tab-repo').classList.toggle('on', t==='repo');
+  document.getElementById('tab-paste').classList.toggle('on', t==='paste');
+  document.getElementById('panel-repo').style.display  = t==='repo'  ? 'block' : 'none';
+  document.getElementById('panel-paste').style.display = t==='paste' ? 'block' : 'none';
+  // Hide repo workspace when switching to paste tab
+  if(t==='paste'){
+    document.getElementById('workspace').style.display='none';
+    document.getElementById('repo-card').style.display='none';
+  } else {
+    document.getElementById('paste-results').style.display='none';
+  }
+}
+
+// ── Char counter for paste tab ─────────────────────────────
+document.getElementById('paste-code').addEventListener('input', function(){
+  document.getElementById('char-count').textContent = this.value.length.toLocaleString() + ' chars';
+});
 
 // ── Helpers ────────────────────────────────────────────────
 function setEx(s){ document.getElementById('repo-input').value=s; loadRepo(); }
@@ -287,7 +372,103 @@ function esc(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ── Load repo ──────────────────────────────────────────────
+// ── PASTE TAB: Review pasted code ─────────────────────────
+async function reviewPaste(){
+  const code     = document.getElementById('paste-code').value.trim();
+  const language = document.getElementById('paste-lang').value;
+  const filename = document.getElementById('paste-filename').value.trim() || 'snippet';
+
+  if(!code){ toast('Paste some code first.'); return; }
+
+  const btn = document.getElementById('paste-btn');
+  btn.disabled=true; btn.textContent='Reviewing...';
+
+  document.getElementById('paste-results').style.display='block';
+  document.getElementById('paste-results').innerHTML=`
+    <div class="prog-wrap">
+      <div class="prog-title">Reviewing your code...</div>
+      <div class="prog-sub">Sending to Llama 3.3 via Groq</div>
+      <div class="prog-bar-bg"><div class="prog-bar" style="width:60%;transition:none"></div></div>
+    </div>`;
+  document.getElementById('paste-results').scrollIntoView({behavior:'smooth',block:'start'});
+
+  try{
+    const res = await fetch(`${API}/review`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({code, language, filename})
+    });
+    const data = await res.json();
+    if(data.detail) throw new Error(data.detail);
+    renderPasteResult(data.result, language, filename);
+  }catch(e){
+    document.getElementById('paste-results').innerHTML=`
+      <div class="prog-wrap" style="border-color:var(--red)">
+        <div style="color:var(--red);font-family:var(--mono);font-size:12px">✗ ${esc(e.message)}</div>
+      </div>`;
+    toast('Review failed: '+e.message);
+  }finally{
+    btn.disabled=false; btn.textContent='Review Code →';
+  }
+}
+
+function renderPasteResult(result, language, filename){
+  const icons={bug:'🐛',security:'🔐',performance:'⚡',style:'✏️'};
+  const sc=result.score;
+  const scoreColor=sc>=7?'var(--green)':sc>=4?'var(--amber)':'var(--red)';
+  const scoreBorder=sc>=7?'var(--green2)':sc>=4?'rgba(210,153,34,.4)':'rgba(248,81,73,.4)';
+
+  const issuesHTML = result.issues.length===0
+    ? `<div class="empty" style="padding:2rem"><div class="empty-icon">✅</div><h3>No issues found</h3><p>Code looks clean!</p></div>`
+    : result.issues.map((iss,i)=>`
+        <div class="icard ${iss.severity}" id="pic${i}">
+          <div class="ihead" onclick="togglePasteIssue(${i})">
+            <span class="sev s-${iss.severity}">${iss.severity}</span>
+            <span class="ttag">${icons[iss.type]||'•'} ${iss.type}</span>
+            <span class="iline">L${iss.line}</span>
+            <span class="imsg">${esc(iss.message)}</span>
+            <span class="itog">▾</span>
+          </div>
+          <div class="ibody">
+            <div class="fixlabel">✦ Suggested fix</div>
+            <div class="cblock">${esc(iss.fix)}</div>
+          </div>
+        </div>`).join('');
+
+  document.getElementById('paste-results').innerHTML=`
+    <div class="paste-result">
+      <div class="pr-header">
+        <div>
+          <div class="pr-title">${esc(filename)} · ${language}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:3px">${esc(result.summary)}</div>
+        </div>
+        <span class="score-badge" style="color:${scoreColor};border-color:${scoreBorder}">
+          Score: ${sc}/10
+        </span>
+      </div>
+
+      <!-- Mini summary -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem">
+        ${['high','medium','low'].map(s=>{
+          const n=result.issues.filter(i=>i.severity===s).length;
+          if(!n) return '';
+          const c=s==='high'?'var(--red)':s==='medium'?'var(--amber)':'var(--blue)';
+          return `<span style="font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid;border-color:${c}30;color:${c};background:${c}15">${n} ${s}</span>`;
+        }).join('')}
+        ${result.issues.length===0?'<span style="font-family:var(--mono);font-size:11px;color:var(--green)">✓ All clear</span>':''}
+      </div>
+
+      ${issuesHTML}
+    </div>`;
+}
+
+function togglePasteIssue(i){
+  document.getElementById('pic'+i).classList.toggle('open');
+}
+
+// ── REPO TAB ───────────────────────────────────────────────
+document.getElementById('repo-input').addEventListener('keydown',e=>{ if(e.key==='Enter') loadRepo(); });
+
 async function loadRepo(){
   const raw=document.getElementById('repo-input').value.trim();
   if(!raw){toast('Enter a GitHub repo URL');return;}
@@ -295,12 +476,12 @@ async function loadRepo(){
 
   const btn=document.getElementById('load-btn');
   btn.disabled=true; btn.textContent='Loading...';
+  document.getElementById('paste-results').style.display='none';
 
   try{
     const info=await fetch(`${API}/repo/info?url=${encodeURIComponent(url)}`).then(r=>r.json());
     if(info.detail) throw new Error(info.detail);
-    repoInfo=info;
-    renderRepoCard(info);
+    repoInfo=info; renderRepoCard(info);
 
     const fres=await fetch(`${API}/repo/files?url=${encodeURIComponent(url)}&max_files=40`).then(r=>r.json());
     if(fres.detail) throw new Error(fres.detail);
@@ -317,46 +498,36 @@ async function loadRepo(){
   }
 }
 
-document.getElementById('repo-input').addEventListener('keydown',e=>{ if(e.key==='Enter') loadRepo(); });
-
-// ── Repo card ──────────────────────────────────────────────
 function renderRepoCard(info){
   document.getElementById('repo-fullname').textContent=info.full_name;
   document.getElementById('repo-desc').textContent=info.description||'No description';
   document.getElementById('repo-stats').innerHTML=`
     <div class="stat">⭐ ${info.stars.toLocaleString()}</div>
     <div class="stat">🍴 ${info.forks.toLocaleString()}</div>
-    <div class="stat"><span style="width:8px;height:8px;border-radius:50%;background:${langColor(info.language)};display:inline-block;flex-shrink:0"></span>${info.language||'?'}</div>
+    <div class="stat"><span style="width:8px;height:8px;border-radius:50%;background:${langColor(info.language)};display:inline-block"></span>${info.language||'?'}</div>
     <a class="stat" href="${info.url}" target="_blank" style="color:var(--blue)">↗ GitHub</a>`;
   document.getElementById('repo-card').style.display='flex';
 }
 
-// ── File list ──────────────────────────────────────────────
 function renderFileList(){
   const el=document.getElementById('file-list');
-  if(!allFiles.length){ el.innerHTML='<div class="empty"><p>No reviewable files found.</p></div>'; return; }
+  if(!allFiles.length){el.innerHTML='<div class="empty"><p>No reviewable files found.</p></div>';return;}
 
   el.innerHTML=allFiles.map(f=>{
     const r=results[f.path];
     let cls=selected.has(f.path)?'fi sel':'fi';
     let badge='';
-
     if(r){
       const n=r.issues.length;
-      if(n===0){cls+=' clean'; badge=`<span class="fbadge" style="background:var(--green-bg);color:var(--green)">✓</span>`;}
-      else{cls+=' has-issues'; badge=`<span class="fbadge" style="background:var(--red-bg);color:var(--red)">${n}</span>`;}
+      if(n===0){cls+=' clean';badge=`<span class="fbadge" style="background:var(--green-bg);color:var(--green)">✓</span>`;}
+      else{cls+=' has-issues';badge=`<span class="fbadge" style="background:var(--red-bg);color:var(--red)">${n}</span>`;}
     }
-
-    const chkSvg=selected.has(f.path)
-      ?`<svg width="8" height="8" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" fill="none" stroke="var(--bg)" stroke-width="2.5" stroke-linecap="round"/></svg>`
-      :'';
-
+    const chk=selected.has(f.path)?`<svg width="8" height="8" viewBox="0 0 10 10"><path d="M1 5l3 3 5-5" fill="none" stroke="var(--bg)" stroke-width="2.5" stroke-linecap="round"/></svg>`:'';
     return `<div class="${cls}" onclick="toggleFile('${f.path}')" data-path="${f.path}">
-      <div class="chk">${chkSvg}</div>
-      <span style="font-size:13px;flex-shrink:0">${extIcon(f.path)}</span>
+      <div class="chk">${chk}</div>
+      <span style="font-size:12px;flex-shrink:0">${extIcon(f.path)}</span>
       <span class="fpath" title="${f.path}">${f.path}</span>
-      ${badge}
-    </div>`;
+      ${badge}</div>`;
   }).join('');
 }
 
@@ -366,7 +537,6 @@ function toggleFile(path){
   document.getElementById('run-btn').disabled=selected.size===0;
 }
 
-// ── Analyze ────────────────────────────────────────────────
 async function analyzeSelected(){
   const files=allFiles.filter(f=>selected.has(f.path));
   if(!files.length){toast('No files selected.');return;}
@@ -378,7 +548,7 @@ async function analyzeSelected(){
   ra.innerHTML=`
     <div class="prog-wrap" id="prog">
       <div class="prog-title">Analyzing ${files.length} file${files.length>1?'s':''}...</div>
-      <div class="prog-sub" id="prog-sub">Starting Llama 3.3 via Groq (free)...</div>
+      <div class="prog-sub" id="prog-sub">Starting Llama 3.3 via Groq...</div>
       <div class="prog-bar-bg"><div class="prog-bar" id="prog-bar"></div></div>
       <div class="prog-log" id="prog-log"></div>
     </div>`;
@@ -386,7 +556,7 @@ async function analyzeSelected(){
   const bar=document.getElementById('prog-bar');
   const sub=document.getElementById('prog-sub');
   const log=document.getElementById('prog-log');
-  function addLog(m){ log.innerHTML+=`<div>${m}</div>`; log.scrollTop=log.scrollHeight; }
+  const addLog=m=>{log.innerHTML+=`<div>${m}</div>`;log.scrollTop=log.scrollHeight;};
 
   let done=0;
   for(const file of files){
@@ -397,8 +567,7 @@ async function analyzeSelected(){
 
     try{
       const res=await fetch(`${API}/repo/analyze-file`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
+        method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({download_url:file.download_url,path:file.path})
       });
       const data=await res.json();
@@ -408,7 +577,7 @@ async function analyzeSelected(){
         const n=data.result.issues.length;
         addLog(`  ✓ Score ${data.result.score}/10 · ${n} issue${n!==1?'s':''}`);
       }
-    }catch(e){ addLog(`  ✗ ${e.message}`); }
+    }catch(e){addLog(`  ✗ ${e.message}`);}
 
     done++;
     bar.style.width=Math.round((done/files.length)*100)+'%';
@@ -421,16 +590,14 @@ async function analyzeSelected(){
   document.getElementById('run-btn').textContent='Re-analyze';
 }
 
-// ── Render results ─────────────────────────────────────────
 function renderResults(){
   const ra=document.getElementById('results-area');
   ra.innerHTML='';
-
   const allIssues=[];
-  let totalScore=0, scoreCount=0;
+  let totalScore=0,scoreCount=0;
 
   for(const[path,r] of Object.entries(results)){
-    totalScore+=r.score; scoreCount++;
+    totalScore+=r.score;scoreCount++;
     r.issues.forEach(i=>allIssues.push({...i,file:path}));
   }
 
@@ -443,17 +610,14 @@ function renderResults(){
   const sc=avg>=7?'var(--green)':avg>=4?'var(--amber)':'var(--red)';
 
   ra.innerHTML=`
-    <!-- Summary cards -->
     <div class="sum-grid">
-      <div class="sc"><div class="slabel">Avg Score</div><div class="sval" style="color:${sc}">${avg}<span style="font-size:1rem;color:var(--text3)">/10</span></div><div class="ssub">${scoreCount} file${scoreCount!==1?'s':''}</div></div>
+      <div class="sc"><div class="slabel">Avg Score</div><div class="sval" style="color:${sc}">${avg}<span style="font-size:.9rem;color:var(--text3)">/10</span></div><div class="ssub">${scoreCount} files</div></div>
       <div class="sc"><div class="slabel">Total Issues</div><div class="sval">${allIssues.length}</div><div class="ssub">all files</div></div>
       <div class="sc"><div class="slabel">Critical</div><div class="sval" style="color:var(--red)">${high}</div><div class="ssub">high severity</div></div>
       <div class="sc"><div class="slabel">Security</div><div class="sval" style="color:var(--amber)">${sec}</div><div class="ssub">vulnerabilities</div></div>
       <div class="sc"><div class="slabel">Performance</div><div class="sval" style="color:var(--blue)">${perf}</div><div class="ssub">slow code</div></div>
       <div class="sc"><div class="slabel">Warnings</div><div class="sval" style="color:var(--amber)">${med}</div><div class="ssub">medium</div></div>
     </div>
-
-    <!-- Filter bar -->
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
       <div class="fbar" id="fbar">
         <button class="fb on" onclick="setFilter(this,'all')">All (${allIssues.length})</button>
@@ -465,8 +629,6 @@ function renderResults(){
       </div>
       <button class="expbtn" onclick="exportReport()">↓ Export JSON</button>
     </div>
-
-    <!-- Issues container -->
     <div id="issues-wrap"></div>`;
 
   window._issues=allIssues;
@@ -476,13 +638,13 @@ function renderResults(){
 function renderIssues(list){
   const wrap=document.getElementById('issues-wrap');
   if(!list.length){
-    wrap.innerHTML=`<div class="panel"><div class="empty" style="padding:3rem"><div class="empty-icon">✅</div><h3>No issues in this category</h3><p>Try another filter or select more files.</p></div></div>`;
+    wrap.innerHTML=`<div class="panel"><div class="empty" style="padding:2.5rem"><div class="empty-icon">✅</div><h3>No issues in this category</h3></div></div>`;
     return;
   }
   const icons={bug:'🐛',security:'🔐',performance:'⚡',style:'✏️'};
   wrap.innerHTML=list.map((iss,i)=>`
     <div class="icard ${iss.severity}" id="ic${i}">
-      <div class="ihead" onclick="toggleIc(${i})">
+      <div class="ihead" onclick="toggleIssue(${i})">
         <span class="sev s-${iss.severity}">${iss.severity}</span>
         <span class="ttag">${icons[iss.type]||'•'} ${iss.type}</span>
         <span class="ifile">${iss.file.split('/').pop()}</span>
@@ -498,32 +660,25 @@ function renderIssues(list){
     </div>`).join('');
 }
 
-function toggleIc(i){
-  document.getElementById('ic'+i).classList.toggle('open');
-}
+function toggleIssue(i){ document.getElementById('ic'+i).classList.toggle('open'); }
 
 function setFilter(btn,f){
   document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   const all=window._issues||[];
-  const map={all:all,high:all.filter(i=>i.severity==='high'),medium:all.filter(i=>i.severity==='medium'),low:all.filter(i=>i.severity==='low'),security:all.filter(i=>i.type==='security'),performance:all.filter(i=>i.type==='performance')};
+  const map={all,high:all.filter(i=>i.severity==='high'),medium:all.filter(i=>i.severity==='medium'),low:all.filter(i=>i.severity==='low'),security:all.filter(i=>i.type==='security'),performance:all.filter(i=>i.type==='performance')};
   renderIssues(map[f]||all);
 }
 
-// ── Export ─────────────────────────────────────────────────
 function exportReport(){
   const report={
-    repo:repoInfo?.full_name,
-    generatedAt:new Date().toISOString(),
+    repo:repoInfo?.full_name,generatedAt:new Date().toISOString(),
     model:'llama-3.3-70b-versatile (Groq)',
-    summary:{
-      filesReviewed:Object.keys(results).length,
-      totalIssues:(window._issues||[]).length,
+    summary:{filesReviewed:Object.keys(results).length,totalIssues:(window._issues||[]).length,
       high:(window._issues||[]).filter(i=>i.severity==='high').length,
       medium:(window._issues||[]).filter(i=>i.severity==='medium').length,
       low:(window._issues||[]).filter(i=>i.severity==='low').length,
-      security:(window._issues||[]).filter(i=>i.type==='security').length,
-    },
+      security:(window._issues||[]).filter(i=>i.type==='security').length},
     files:Object.entries(results).map(([path,r])=>({path,score:r.score,summary:r.summary,issues:r.issues}))
   };
   const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'});
