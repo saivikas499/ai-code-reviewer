@@ -33,6 +33,16 @@ header{display:flex;align-items:center;justify-content:space-between;padding:0 2
 .logo-icon svg{width:15px;height:15px;stroke:var(--bg);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .hbadge{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:20px;border:1px solid var(--green2);color:var(--green);background:var(--green-bg)}
 
+/* ── Analysis banner (sticky, any tab) ── */
+.analysis-banner{display:none;position:sticky;top:54px;z-index:99;background:#0d2818;border-bottom:1px solid var(--green2);padding:8px 2rem;align-items:center;gap:12px}
+.analysis-banner.show{display:flex}
+.ab-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 1.2s infinite}
+.ab-text{font-family:var(--mono);font-size:11px;color:var(--green);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ab-bar-bg{width:100px;height:3px;background:rgba(63,185,80,.2);border-radius:4px;flex-shrink:0;overflow:hidden}
+.ab-bar{height:100%;background:var(--green);border-radius:4px;transition:width .4s ease;width:0}
+.ab-btn{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:5px;border:1px solid var(--green2);color:var(--green);background:transparent;cursor:pointer;white-space:nowrap}
+.ab-btn:hover{background:var(--green2);color:#fff}
+
 /* ── Hero ── */
 .hero{padding:3rem 2rem 0;text-align:center;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:700px;height:350px;background:radial-gradient(ellipse,rgba(63,185,80,.07) 0%,transparent 65%);pointer-events:none}
@@ -198,6 +208,14 @@ main{padding:1.75rem 2rem;max-width:1380px;margin:0 auto}
   <span class="hbadge">Llama 3.3 · Groq · Free</span>
 </header>
 
+<!-- Persistent analysis progress banner -->
+<div class="analysis-banner" id="analysis-banner">
+  <span class="ab-dot"></span>
+  <span class="ab-text" id="ab-text">Analysis running...</span>
+  <div class="ab-bar-bg"><div class="ab-bar" id="ab-bar"></div></div>
+  <button class="ab-btn" onclick="switchTab('repo')">View Progress →</button>
+</div>
+
 <!-- Hero -->
 <section class="hero">
   <p class="eyebrow">// AI-Powered Code Review</p>
@@ -326,8 +344,9 @@ main{padding:1.75rem 2rem;max-width:1380px;margin:0 auto}
 </main>
 
 <script>
-const API = window.location.origin;
+const API = 'http://localhost:8000';
 let repoInfo=null, allFiles=[], selected=new Set(), results={};
+let isAnalyzing = false;   // ← global flag
 
 // ── Tab switching ──────────────────────────────────────────
 function switchTab(t){
@@ -335,12 +354,21 @@ function switchTab(t){
   document.getElementById('tab-paste').classList.toggle('on', t==='paste');
   document.getElementById('panel-repo').style.display  = t==='repo'  ? 'block' : 'none';
   document.getElementById('panel-paste').style.display = t==='paste' ? 'block' : 'none';
-  // Hide repo workspace when switching to paste tab
+
   if(t==='paste'){
-    document.getElementById('workspace').style.display='none';
-    document.getElementById('repo-card').style.display='none';
+    // Only hide workspace if analysis is NOT running
+    if(!isAnalyzing){
+      document.getElementById('workspace').style.display='none';
+      document.getElementById('repo-card').style.display='none';
+    }
+    // Hide paste results when switching back to paste tab with no new result
   } else {
+    // Switching back to repo tab — always show workspace if files loaded
     document.getElementById('paste-results').style.display='none';
+    if(allFiles.length){
+      document.getElementById('workspace').style.display='grid';
+      if(repoInfo) document.getElementById('repo-card').style.display='flex';
+    }
   }
 }
 
@@ -541,6 +569,13 @@ async function analyzeSelected(){
   const files=allFiles.filter(f=>selected.has(f.path));
   if(!files.length){toast('No files selected.');return;}
 
+  // ── Set global state ──────────────────────────────────────
+  isAnalyzing = true;
+  const banner  = document.getElementById('analysis-banner');
+  const abText  = document.getElementById('ab-text');
+  const abBar   = document.getElementById('ab-bar');
+  banner.classList.add('show');
+
   document.getElementById('run-btn').disabled=true;
   document.getElementById('results-empty').style.display='none';
 
@@ -562,7 +597,10 @@ async function analyzeSelected(){
   for(const file of files){
     const el=document.querySelector(`[data-path="${file.path}"]`);
     if(el) el.className='fi analyzing';
+
+    const label=`${done+1}/${files.length} — ${file.path.split('/').pop()}`;
     sub.textContent=`Reviewing ${file.path}`;
+    abText.textContent=label;          // ← update banner
     addLog(`→ ${file.path}`);
 
     try{
@@ -580,9 +618,16 @@ async function analyzeSelected(){
     }catch(e){addLog(`  ✗ ${e.message}`);}
 
     done++;
-    bar.style.width=Math.round((done/files.length)*100)+'%';
+    const pct=Math.round((done/files.length)*100);
+    bar.style.width=pct+'%';
+    abBar.style.width=pct+'%';         // ← update banner bar
     renderFileList();
   }
+
+  // ── Analysis done — clear state ───────────────────────────
+  isAnalyzing = false;
+  banner.classList.remove('show');
+  abBar.style.width='0%';
 
   document.getElementById('prog').remove();
   renderResults();
