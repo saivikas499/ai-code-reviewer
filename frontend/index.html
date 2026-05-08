@@ -192,6 +192,16 @@ main{padding:1.75rem 2rem;max-width:1380px;margin:0 auto}
 .pr-title{font-size:13px;font-weight:700}
 .score-badge{font-family:var(--mono);font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid}
 
+/* ── History card ── */
+.hcard{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:7px;cursor:pointer;transition:border-color .15s}
+.hcard:hover{border-color:var(--border2)}
+.hcard-icon{font-size:18px;flex-shrink:0}
+.hcard-body{flex:1;min-width:0}
+.hcard-title{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hcard-meta{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:2px}
+.hcard-badges{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.hbadge-sm{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600}
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
 </style>
@@ -226,8 +236,9 @@ main{padding:1.75rem 2rem;max-width:1380px;margin:0 auto}
 <!-- Tabs -->
 <div class="tabs-wrap">
   <div class="tab-bar">
-    <button class="tab-btn on" id="tab-repo" onclick="switchTab('repo')">🔍 Scan GitHub Repo</button>
-    <button class="tab-btn"    id="tab-paste" onclick="switchTab('paste')">📋 Paste Code</button>
+    <button class="tab-btn on" id="tab-repo"    onclick="switchTab('repo')">🔍 Scan GitHub Repo</button>
+    <button class="tab-btn"    id="tab-paste"   onclick="switchTab('paste')">📋 Paste Code</button>
+    <button class="tab-btn"    id="tab-history" onclick="switchTab('history')">🕑 History <span id="history-count" style="font-size:10px;opacity:.6"></span></button>
   </div>
 
   <div class="tab-panels">
@@ -279,6 +290,15 @@ main{padding:1.75rem 2rem;max-width:1380px;margin:0 auto}
         <span class="char-count" id="char-count">0 chars</span>
         <button class="review-btn" id="paste-btn" onclick="reviewPaste()">Review Code →</button>
       </div>
+    </div>
+
+    <!-- History tab -->
+    <div id="panel-history" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">Stored in your browser · up to 30 analyses</span>
+        <button onclick="clearHistory()" style="font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:5px;border:1px solid rgba(248,81,73,.3);color:var(--red);background:transparent;cursor:pointer">Clear all</button>
+      </div>
+      <div id="history-list"></div>
     </div>
 
   </div>
@@ -350,20 +370,26 @@ let isAnalyzing = false;   // ← global flag
 
 // ── Tab switching ──────────────────────────────────────────
 function switchTab(t){
-  document.getElementById('tab-repo').classList.toggle('on', t==='repo');
-  document.getElementById('tab-paste').classList.toggle('on', t==='paste');
-  document.getElementById('panel-repo').style.display  = t==='repo'  ? 'block' : 'none';
-  document.getElementById('panel-paste').style.display = t==='paste' ? 'block' : 'none';
+  document.getElementById('tab-repo').classList.toggle('on',    t==='repo');
+  document.getElementById('tab-paste').classList.toggle('on',   t==='paste');
+  document.getElementById('tab-history').classList.toggle('on', t==='history');
+  document.getElementById('panel-repo').style.display    = t==='repo'    ? 'block' : 'none';
+  document.getElementById('panel-paste').style.display   = t==='paste'   ? 'block' : 'none';
+  document.getElementById('panel-history').style.display = t==='history' ? 'block' : 'none';
 
   if(t==='paste'){
-    // Only hide workspace if analysis is NOT running
     if(!isAnalyzing){
       document.getElementById('workspace').style.display='none';
       document.getElementById('repo-card').style.display='none';
     }
-    // Hide paste results when switching back to paste tab with no new result
+  } else if(t==='history'){
+    if(!isAnalyzing){
+      document.getElementById('workspace').style.display='none';
+      document.getElementById('repo-card').style.display='none';
+    }
+    document.getElementById('paste-results').style.display='none';
+    renderHistoryList();
   } else {
-    // Switching back to repo tab — always show workspace if files loaded
     document.getElementById('paste-results').style.display='none';
     if(allFiles.length){
       document.getElementById('workspace').style.display='grid';
@@ -429,6 +455,7 @@ async function reviewPaste(){
     const data = await res.json();
     if(data.detail) throw new Error(data.detail);
     renderPasteResult(data.result, language, filename);
+    savePasteAnalysis(data.result, language, filename);   // ← persist
   }catch(e){
     document.getElementById('paste-results').innerHTML=`
       <div class="prog-wrap" style="border-color:var(--red)">
@@ -631,6 +658,7 @@ async function analyzeSelected(){
 
   document.getElementById('prog').remove();
   renderResults();
+  saveRepoAnalysis();   // ← persist to localStorage
   document.getElementById('run-btn').disabled=false;
   document.getElementById('run-btn').textContent='Re-analyze';
 }
@@ -732,6 +760,178 @@ function exportReport(){
   a.download=`codescope-${(repoInfo?.repo||'report')}-${Date.now()}.json`;
   a.click();
 }
+
+// ── HISTORY — localStorage persistence ────────────────────
+const STORAGE_KEY = 'codescope_history';
+const MAX_HISTORY = 30;
+
+function loadHistory(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch{ return []; }
+}
+
+function saveHistory(entries){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+  catch(e){ console.warn('localStorage save failed:', e); }
+}
+
+function updateHistoryCount(){
+  const n = loadHistory().length;
+  const el = document.getElementById('history-count');
+  if(el) el.textContent = n ? `(${n})` : '';
+}
+
+// Called after a repo analysis finishes
+function saveRepoAnalysis(){
+  if(!repoInfo || !Object.keys(results).length) return;
+  const allIssues = Object.values(results).flatMap(r => r.issues);
+  const avgScore  = Math.round(
+    Object.values(results).reduce((s,r) => s + r.score, 0) / Object.keys(results).length
+  );
+
+  const entry = {
+    id:        Date.now(),
+    type:      'repo',
+    title:     repoInfo.full_name,
+    subtitle:  repoInfo.description || '',
+    timestamp: new Date().toISOString(),
+    score:     avgScore,
+    filesReviewed: Object.keys(results).length,
+    totalIssues:   allIssues.length,
+    high:     allIssues.filter(i=>i.severity==='high').length,
+    medium:   allIssues.filter(i=>i.severity==='medium').length,
+    low:      allIssues.filter(i=>i.severity==='low').length,
+    security: allIssues.filter(i=>i.type==='security').length,
+    // Store compact results (no full code, just issues + scores)
+    snapshot: Object.entries(results).map(([path,r])=>({
+      path, score:r.score, summary:r.summary, issues:r.issues
+    })),
+    repoInfo: { ...repoInfo }
+  };
+
+  const history = [entry, ...loadHistory()].slice(0, MAX_HISTORY);
+  saveHistory(history);
+  updateHistoryCount();
+}
+
+// Called after a paste analysis finishes
+function savePasteAnalysis(result, language, filename){
+  const entry = {
+    id:        Date.now(),
+    type:      'paste',
+    title:     filename,
+    subtitle:  language,
+    timestamp: new Date().toISOString(),
+    score:     result.score,
+    totalIssues: result.issues.length,
+    high:     result.issues.filter(i=>i.severity==='high').length,
+    medium:   result.issues.filter(i=>i.severity==='medium').length,
+    low:      result.issues.filter(i=>i.severity==='low').length,
+    security: result.issues.filter(i=>i.type==='security').length,
+    snapshot: result,
+    language,
+    filename
+  };
+
+  const history = [entry, ...loadHistory()].slice(0, MAX_HISTORY);
+  saveHistory(history);
+  updateHistoryCount();
+}
+
+function clearHistory(){
+  if(!confirm('Clear all analysis history from this browser?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  updateHistoryCount();
+  renderHistoryList();
+}
+
+function deleteHistoryEntry(id, e){
+  e.stopPropagation();
+  const updated = loadHistory().filter(h => h.id !== id);
+  saveHistory(updated);
+  updateHistoryCount();
+  renderHistoryList();
+}
+
+function renderHistoryList(){
+  const list    = document.getElementById('history-list');
+  const history = loadHistory();
+
+  if(!history.length){
+    list.innerHTML=`
+      <div class="empty" style="padding:2.5rem">
+        <div class="empty-icon">📭</div>
+        <h3>No history yet</h3>
+        <p>Analyses you run this session will appear here automatically.</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = history.map(h => {
+    const sc    = h.score>=7?'var(--green)':h.score>=4?'var(--amber)':'var(--red)';
+    const icon  = h.type==='repo' ? '🔍' : '📋';
+    const date  = new Date(h.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const meta  = h.type==='repo'
+      ? `${h.filesReviewed} file${h.filesReviewed!==1?'s':''} · ${date}`
+      : `${h.subtitle} · ${date}`;
+
+    return `
+      <div class="hcard" onclick="loadHistoryEntry(${h.id})">
+        <span class="hcard-icon">${icon}</span>
+        <div class="hcard-body">
+          <div class="hcard-title">${esc(h.title)}</div>
+          <div class="hcard-meta">${meta}</div>
+        </div>
+        <div class="hcard-badges">
+          <span class="hbadge-sm" style="background:${sc}18;color:${sc};border:1px solid ${sc}30">${h.score}/10</span>
+          ${h.high   ? `<span class="hbadge-sm" style="background:var(--red-bg);color:var(--red)">${h.high}🔴</span>`:''}
+          ${h.medium ? `<span class="hbadge-sm" style="background:var(--amber-bg);color:var(--amber)">${h.medium}🟡</span>`:''}
+          ${h.low    ? `<span class="hbadge-sm" style="background:var(--blue-bg);color:var(--blue)">${h.low}🔵</span>`:''}
+        </div>
+        <button onclick="deleteHistoryEntry(${h.id}, event)"
+          style="font-size:14px;background:none;border:none;color:var(--text3);cursor:pointer;padding:2px 5px;flex-shrink:0"
+          title="Remove">✕</button>
+      </div>`;
+  }).join('');
+}
+
+function loadHistoryEntry(id){
+  const entry = loadHistory().find(h => h.id === id);
+  if(!entry) return;
+
+  if(entry.type === 'paste'){
+    // Switch to paste tab and show the result
+    switchTab('paste');
+    document.getElementById('paste-filename').value = entry.filename || '';
+    document.getElementById('paste-lang').value     = entry.language || 'python';
+    document.getElementById('paste-results').style.display = 'block';
+    renderPasteResult(entry.snapshot, entry.language, entry.filename);
+    document.getElementById('paste-results').scrollIntoView({behavior:'smooth'});
+
+  } else {
+    // Restore repo analysis results into the main workspace
+    repoInfo = entry.repoInfo;
+    results  = {};
+    entry.snapshot.forEach(f => { results[f.path] = {score:f.score,summary:f.summary,issues:f.issues}; });
+    allFiles = entry.snapshot.map(f => ({path:f.path, download_url:'', ext:''}));
+    selected = new Set(allFiles.map(f => f.path));
+
+    switchTab('repo');
+    renderRepoCard(repoInfo);
+    renderFileList();
+    document.getElementById('workspace').style.display='grid';
+    document.getElementById('run-btn').textContent = 'Re-analyze';
+    renderResults();
+
+    // Scroll to results
+    setTimeout(()=>{
+      document.getElementById('results-area').scrollIntoView({behavior:'smooth'});
+    }, 100);
+  }
+}
+
+// Init history count on page load
+updateHistoryCount();
 </script>
 </body>
 </html>
